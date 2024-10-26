@@ -64,3 +64,11 @@ df = (
 )
 
 display(df)
+
+# COMMAND ----------
+
+print("Hello Camilo")
+
+# COMMAND ----------
+
+
