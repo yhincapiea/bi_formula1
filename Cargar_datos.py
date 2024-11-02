@@ -225,4 +225,44 @@ raw_folders3
 
 # COMMAND ----------
 
+# Caregar datos circuits
+df_circuits = (
+    spark
+    .read
+    .format('csv')
+    .schema(df_circuits_schema)
+    .option('header', True)
+    .load(f'{raw_location}/circuits.csv')
+)
+
+# COMMAND ----------
+
+df_circuits.show(5)
+
+# COMMAND ----------
+
+df_circuits.printSchema()
+
+# COMMAND ----------
+
+# Caregar datos races
+df_races = (
+    spark
+    .read
+    .format('csv')
+    .schema(df_races_schema)
+    .option('header', True)
+    .load(f'{raw_location}/races.csv')
+)
+
+# COMMAND ----------
+
+print(df_races.show(5))
+
+# COMMAND ----------
+
+df_races.printSchema()
+
+# COMMAND ----------
+
 
