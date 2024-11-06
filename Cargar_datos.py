@@ -323,7 +323,7 @@ display(df_drivers)
 
 # COMMAND ----------
 
-writing_info(df_drivers,'formula1.oro','drivers')
+writing_info(df_drivers,'formula1.plata','drivers')
 
 # COMMAND ----------
 
@@ -348,7 +348,7 @@ display(df_races)
 
 # COMMAND ----------
 
-writing_info(df_races,'formula1.oro','races')
+writing_info(df_races,'formula1.plata','races')
 
 # COMMAND ----------
 
@@ -376,7 +376,7 @@ display(df_qualifying)
 
 # COMMAND ----------
 
-writing_info(df_qualifying,'formula1.oro','qualifying')
+writing_info(df_qualifying,'formula1.plata','qualifying')
 
 # COMMAND ----------
 
@@ -406,7 +406,7 @@ display(df_results)
 
 # COMMAND ----------
 
-writing_info(df_results,'formula1.oro','results')
+writing_info(df_results,'formula1.plata','results')
 
 # COMMAND ----------
 
@@ -443,3 +443,15 @@ display(df_lap_times)
 # COMMAND ----------
 
 writing_info(df_lap_times,'formula1.oro','lap_times')
+
+# COMMAND ----------
+
+# MAGIC %sql
+# MAGIC DROP TABLE IF EXISTS formula1.oro.drivers;
+# MAGIC DROP TABLE IF EXISTS formula1.oro.qualifying;
+# MAGIC DROP TABLE IF EXISTS formula1.oro.races;
+# MAGIC DROP TABLE IF EXISTS formula1.oro.results;
+
+# COMMAND ----------
+
+
