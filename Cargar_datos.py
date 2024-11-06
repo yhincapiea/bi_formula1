@@ -239,7 +239,7 @@ def writing_info(df: DataFrame, catalogo: str, table_name: str):
 
 # COMMAND ----------
 
-# Caregar datos circuits
+# Cargar datos circuits
 df_circuits = (
     spark
     .read
@@ -257,34 +257,6 @@ writing_info(df_circuits,'formula1.oro','circuits')
 
 # COMMAND ----------
 
-# Caregar datos races
-df_races = (
-    spark
-    .read
-    .format('csv')
-    .schema(df_races_schema)
-    .option('header', True)
-    .load(f'{raw_location}/races.csv')
-)
-
-display(df_races)
-
-# COMMAND ----------
-
-display(df_races.describe())
-
-# COMMAND ----------
-
-nulos = df_races.select(
-    [
-        round(sum(col(c).isNull().cast('int'))/2708368, 2).alias(c) for c in df_races.columns
-    ]
-)
-
-display(nulos)
-
-# COMMAND ----------
-
 # Caregar datos constructors
 df_constructors = (
     spark
@@ -296,6 +268,10 @@ df_constructors = (
 )
 
 display(df_constructors)
+
+# COMMAND ----------
+
+writing_info(df_constructors,'formula1.oro','constructors')
 
 # COMMAND ----------
 
@@ -329,49 +305,50 @@ display(df_drivers)
 
 # COMMAND ----------
 
-
-
-# COMMAND ----------
-
-# Cargar datos pit stops
-df_pit_stops = (
-    spark
-    .read
-    .format('json')
-    .schema(df_pit_stops_schema)
-    .option('multiline', True)
-    .load(f'{raw_location}/pit_stops.json')
-)
-
-display(df_pit_stops)
+df_drivers = df_drivers.withColumn("dob", to_date("dob", "yyyy-MM-dd")) 
+display(df_drivers)
 
 # COMMAND ----------
 
-# Cargar datos results
-df_results = (
-    spark
-    .read
-    .format('json')
-    .schema(df_results_schema)
-    .option('header', True)
-    .load(f'{raw_location}/results.json')
-)
+from pyspark.sql.functions import coalesce, lit
+from pyspark.sql.functions import when
 
-display(df_results)
+# Reemplazar los valores nulos en la columna 'number' con 0
+df_drivers = df_drivers.withColumn("number", coalesce("number", lit(0)))
+
+# Reemplazar valores '\N' en la columna 'code' con 'sin registro'
+df_drivers = df_drivers.withColumn("code", when(df_drivers["code"] == "\\N", "Sin registro").otherwise(df_drivers["code"]))
+
+display(df_drivers)
 
 # COMMAND ----------
 
-# Cargar datos lap times
-df_lap_times = (
+writing_info(df_drivers,'formula1.oro','drivers')
+
+# COMMAND ----------
+
+# Cargar datos races
+df_races = (
     spark
     .read
     .format('csv')
-    .schema(df_lap_times_schema)
+    .schema(df_races_schema)
     .option('header', True)
-    .load(f'{raw_location}/lap_times/*.csv')
+    .load(f'{raw_location}/races.csv')
 )
 
-display(df_lap_times)
+display(df_races)
+
+# COMMAND ----------
+
+df_races = df_races.withColumn("date", to_date("date", "yyyy-MM-dd")) ## columna "date" a formato fecha
+df_races = df_races.withColumn("time", when(df_races["time"] == "\\N", "00:00:00").otherwise(df_races["time"])) ## remplazar \N por 00:00:00
+df_races = df_races.withColumn("time", expr("make_timestamp(year(date), month(date), day(date), split(time, ':')[0], split(time, ':')[1], split(time, ':')[2])")) ## columna "time" a formato tiempo
+display(df_races)
+
+# COMMAND ----------
+
+writing_info(df_races,'formula1.oro','races')
 
 # COMMAND ----------
 
@@ -389,52 +366,80 @@ display(df_qualifying)
 
 # COMMAND ----------
 
-# MAGIC %md
-# MAGIC ### Carga de datos
+from pyspark.sql.functions import when
+
+df_qualifying = df_qualifying.withColumn("q1", when(df_qualifying["q1"] == "\\N", "Sin registro").otherwise(df_qualifying["q1"]))
+df_qualifying = df_qualifying.withColumn("q2", when(df_qualifying["q2"] == "\\N", "Sin registro").otherwise(df_qualifying["q2"]))
+df_qualifying = df_qualifying.withColumn("q3", when(df_qualifying["q3"] == "\\N", "Sin registro").otherwise(df_qualifying["q3"]))
+
+display(df_qualifying)
 
 # COMMAND ----------
 
-
-
-
-# COMMAND ----------
-
-writing_info(df_drivers,'formula1.bronce','drivers')
+writing_info(df_qualifying,'formula1.oro','qualifying')
 
 # COMMAND ----------
 
-writing_info(df_races,'formula1.bronce','races')
+# Cargar datos results
+df_results = (
+    spark
+    .read
+    .format('json')
+    .schema(df_results_schema)
+    .option('header', True)
+    .load(f'{raw_location}/results.json')
+)
+
+display(df_results)
 
 # COMMAND ----------
 
-writing_info(df_pit_stops,'formula1.bronce','pit_stops')
+from pyspark.sql.functions import when, col
+
+# Reemplazar el valor '\N' con 'No registra' en todas las columnas
+df_results = df_results.select(
+    [when(col(c) == "\\N", "No registra").otherwise(col(c)).alias(c) for c in df_results.columns]
+)
+
+df_results = df_results.fillna(-1)
+display(df_results)
 
 # COMMAND ----------
 
-writing_info(df_results,'formula1.bronce','results')
+writing_info(df_results,'formula1.oro','results')
 
 # COMMAND ----------
 
-writing_info(df_lap_times,'formula1.bronce','lap_times')
+# Cargar datos pit stops
+df_pit_stops = (
+    spark
+    .read
+    .format('json')
+    .schema(df_pit_stops_schema)
+    .option('multiline', True)
+    .load(f'{raw_location}/pit_stops.json')
+)
+
+display(df_pit_stops)
 
 # COMMAND ----------
 
-writing_info(df_qualifying,'formula1.bronce','qualifying')
+writing_info(df_pit_stops,'formula1.oro','pit_stops')
 
 # COMMAND ----------
 
-# MAGIC %md
-# MAGIC ## Yenifer 
+# Cargar datos lap times
+df_lap_times = (
+    spark
+    .read
+    .format('csv')
+    .schema(df_lap_times_schema)
+    .option('header', True)
+    .load(f'{raw_location}/lap_times/*.csv')
+)
+
+display(df_lap_times)
 
 # COMMAND ----------
 
-
-
-# COMMAND ----------
-
-# MAGIC %md
-# MAGIC ## Alexander
-
-# COMMAND ----------
-
-
+writing_info(df_lap_times,'formula1.oro','lap_times')
