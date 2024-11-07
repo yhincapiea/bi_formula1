@@ -394,6 +394,11 @@ display(df_results)
 
 # COMMAND ----------
 
+df_results = df_results.fillna(0)
+display(df_results)
+
+# COMMAND ----------
+
 from pyspark.sql.functions import when, col
 
 # Reemplazar el valor '\N' con 'No registra' en todas las columnas
@@ -401,12 +406,26 @@ df_results = df_results.select(
     [when(col(c) == "\\N", "No registra").otherwise(col(c)).alias(c) for c in df_results.columns]
 )
 
-df_results = df_results.fillna(-1)
 display(df_results)
 
 # COMMAND ----------
 
 writing_info(df_results,'formula1.plata','results')
+
+# COMMAND ----------
+
+# MAGIC %sql
+# MAGIC SELECT * FROM formula1.plata.results
+
+# COMMAND ----------
+
+# MAGIC %sql
+# MAGIC DROP TABLE IF EXISTS formula1.plata.results;
+
+# COMMAND ----------
+
+# MAGIC %sql
+# MAGIC SELECT * FROM formula1.plata.results
 
 # COMMAND ----------
 
@@ -446,11 +465,11 @@ writing_info(df_lap_times,'formula1.oro','lap_times')
 
 # COMMAND ----------
 
-# MAGIC %sql
-# MAGIC DROP TABLE IF EXISTS formula1.oro.drivers;
-# MAGIC DROP TABLE IF EXISTS formula1.oro.qualifying;
-# MAGIC DROP TABLE IF EXISTS formula1.oro.races;
-# MAGIC DROP TABLE IF EXISTS formula1.oro.results;
+# %sql
+# DROP TABLE IF EXISTS formula1.oro.drivers;
+# DROP TABLE IF EXISTS formula1.oro.qualifying;
+# DROP TABLE IF EXISTS formula1.oro.races;
+# DROP TABLE IF EXISTS formula1.oro.results;
 
 # COMMAND ----------
 
